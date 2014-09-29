@@ -1,0 +1,20 @@
+README
+
+To run, simply invoke python:
+python cachesim.py <arguments>
+
+Command line arguments:
+cpu <num> - number of cpus
+cache <num> - number of cache lines
+block <num> - block size in bytes
+assoc <num> - associativity
+replacement <num> - replacement strategy, 0 = random, 1 = LRU, 2 = MRU
+buffer <num> - write buffer size
+prefetch <num> - prefetch offset
+retire <num> - retire-at-N value
+wb 1 - write-back enabled
+wa 1 - write-allocate enabled
+v 1 - verbose
+fv 1 - full verbose
+
+If those are not provided, the default values are loaded.

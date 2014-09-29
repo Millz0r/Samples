@@ -1,0 +1,38 @@
+CERBERUS Project
+MInf Dissertation
+Karol Pogonowski s0838671
+School of Informatics
+University of Edinburgh
+Last revised 03 April 2013
+
+
+1. What is CERBERUS
+------------------
+
+CERBERUS is a OpenCL implementation of Google's MapReduce framework.
+The main target are the GPGPUs.
+
+
+3. What is Provided
+-------------------
+
+The CERBERUS distribution includes the following directories:
+
+docs:       The dissertation pdf
+
+src:        The source code for the CERBERUS MapReduce library.
+
+tests:      The source code for the sample MapReduce applications.
+
+include:    Header files for the CERBERUS library.
+
+lib:        Compiled CERBERUS library.
+
+Data sets for four applications are also provided, while the other two use randomly-generated data.
+
+
+3. How to run
+-------------------
+Use make in the main directory to build all the assets. Then, using the command line on a specific application will show its argument list.
+
+End File
