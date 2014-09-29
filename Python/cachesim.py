@@ -325,7 +325,7 @@ class CacheSim():
                         if self.fullVerbose:
                             print "Snooping: found modified tag in processor's\
                                     %d cache, committing and setting shared" \
-									% i
+                                    % i
                         if not self.writeBack:
                             self.writeRAM(address, proc)
                         # Write to cache and set to be shared
@@ -343,8 +343,8 @@ class CacheSim():
             self.prefetch(address, proc)
 
     # Handle a store call from the trace file. See if data is cached, update 
-	# stats. See if write-back is needed. Otherwise, load RAM and write to 
-	# cache if write-allocate, or write to RAM if write-no-allocate.
+    # stats. See if write-back is needed. Otherwise, load RAM and write to 
+    # cache if write-allocate, or write to RAM if write-no-allocate.
     def writeHandler(self, address, proc):
         # Data request
         # See if our data is in the cache
@@ -355,10 +355,10 @@ class CacheSim():
         self.bufferRetire(proc)
 
         if data:
-			# Cached. Write to cache
+            # Cached. Write to cache
             # We write data to cache here. This is not a real operation as no 
-			# data is transferred and the block tag is already in the cache.
-			# Check if we need to write lower level memory too.
+            # data is transferred and the block tag is already in the cache.
+            # Check if we need to write lower level memory too.
             if self.fullVerbose:
                 print "Writing to data in cache"
             # Update statistics
@@ -484,8 +484,8 @@ class CacheSim():
             self.prefetch(address, proc)
 
     # Main method. Reads data from the trace file and calls appropriate 
-	# handlers. Implements all rudimentary trace file options, as well as full
-	# verbose option, which gives even more data than verbose alone.
+    # handlers. Implements all rudimentary trace file options, as well as full
+    # verbose option, which gives even more data than verbose alone.
     def run(self):
         for i in range(0, len(self.fileData)):
             a = self.fileData[i]
