@@ -14,13 +14,13 @@ MAIN_MEMORY = 200
 READ_BYPASS = 1
 
 
-class State():
+class State:
     M = 0
     S = 1
     I = 2
 
 
-class CacheSim():
+class CacheSim:
     # This constructor sets up a lot of important things
     def __init__(self, source):
         file = open(source, 'r')
