@@ -1,0 +1,11 @@
+README
+
+This is a script that performs interactive update of a YAML file, provided the 
+current config and the updated one. The goal is to allow for seamless updates 
+of YAML-based configuration files for different applications, without SysAd 
+involvement.
+
+The script is written in Python and requires PyAML package.
+
+Usage:
+./yaml_updater.py <current_config> <updated_config> [output_file] [-d]

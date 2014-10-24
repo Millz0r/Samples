@@ -1,5 +1,7 @@
 README
 
+A simple cache simulator written in Python.
+
 To run, simply invoke python:
 python cachesim.py <arguments>
 
