@@ -1,13 +1,13 @@
-# Karol Pogonowski - Parallel Architectures Assigment
+#!/usr/bin/env python
+# Karol Pogonowski
 # This code is a cache simulator. It reads an example memory trace specified
 # a priori and then simulates the workings on a processors cache.
-__author__ = 'Karol Pogonowski'
 from string import atoi
 import random
 import sys
 
-num_addr = 2048
-
+# Constants
+NUM_ADDR = 2048
 CACHE_HIT = 2
 BUS = 20
 MAIN_MEMORY = 200
@@ -40,7 +40,7 @@ class CacheSim:
         self.prefetchOffset = 0
         self.retireN = 8
         self.addrAccess = [[0 for j in range(0, self.numCPU)] for i in
-                            range(0, num_addr)]
+                            range(0, NUM_ADDR)]
         self.privAccess = 0
         self.sharedRead = 0
         self.sharedReadWrite = 0
@@ -89,11 +89,11 @@ class CacheSim:
         self.cache = [[[(-1, State.I) for x in range(0, self.associativity)]
                         for i in range(0, self.cacheSize/self.associativity)]
                         for j in range(0, self.numCPU)]
-        self.cacheTimer = [[[-1 for x in range(0, self.associativity)] 
+        self.cacheTimer = [[[-1 for x in range(0, self.associativity)]
                         for i in range(0, self.cacheSize/self.associativity)]
                         for j in range(0, self.numCPU)]
 
-    # Decodes the given address and returns a computed tag, index and byte 
+    # Decodes the given address and returns a computed tag, index and byte
     # offset within the block
     def decode(self, address):
         offset = address / self.blockSize
@@ -126,7 +126,6 @@ class CacheSim:
             else:
                 # Random
                 idx = random.randint(0, self.associativity-1)
-
         # Address to evict
         (evictTag, evictFlag) = self.cache[proc][index][idx]
         if self.fullVerbose:
@@ -159,7 +158,7 @@ class CacheSim:
         if self.fullVerbose:
             print "Updating counter - cache access"
         self.txtBuffer += "looked for tag %d in set %d and offset %d on \
-                           processor %d " % (tag, index, offset, proc)    
+                           processor %d " % (tag, index, offset, proc)
         for (data, flag) in self.cache[proc][index]:
             if data == tag:
                 if flag != State.I:
@@ -173,7 +172,6 @@ class CacheSim:
                     return True
                 else:
                     self.coherenceMiss[proc] += 1
-
         self.txtBuffer += "and was a miss"
         if self.fullVerbose:
             print self.txtBuffer
@@ -188,7 +186,7 @@ class CacheSim:
         else:
             (tag, index, _) = self.decode(address)
         # Check for write buffer
-        if self.bufferLimit > 0:  
+        if self.bufferLimit > 0:
             # Write buffer is full, wait for our turn
             if len(self.writeBuffer[proc]) == self.bufferLimit:
                 # Wait for our turn
@@ -278,7 +276,6 @@ class CacheSim:
                     print self.txtBuffer
                     self.txtBuffer = ""
                     print "WriteBuffer Read Access"
-
                 # Update processor self.counter
                 self.counter[proc] += READ_BYPASS
                 if self.fullVerbose:
@@ -286,7 +283,6 @@ class CacheSim:
                 return
             except ValueError:
                 pass
-
         # See if our data is in the cache
         data = self.isCached(address, proc)
         if data:
@@ -342,8 +338,8 @@ class CacheSim:
             self.writeCache(address, proc)
             self.prefetch(address, proc)
 
-    # Handle a store call from the trace file. See if data is cached, update 
-    # stats. See if write-back is needed. Otherwise, load RAM and write to 
+    # Handle a store call from the trace file. See if data is cached, update
+    # stats. See if write-back is needed. Otherwise, load RAM and write to
     # cache if write-allocate, or write to RAM if write-no-allocate.
     def writeHandler(self, address, proc):
         # Data request
@@ -353,10 +349,9 @@ class CacheSim:
         # Update statistics
         self.addrAccess[address][proc] = 1
         self.bufferRetire(proc)
-
         if data:
             # Cached. Write to cache
-            # We write data to cache here. This is not a real operation as no 
+            # We write data to cache here. This is not a real operation as no
             # data is transferred and the block tag is already in the cache.
             # Check if we need to write lower level memory too.
             if self.fullVerbose:
@@ -377,13 +372,11 @@ class CacheSim:
                     modified += 1
                 except ValueError:
                     pass
-                    
             if (shared == 1 and modified == 0) or \
                 (shared == 0 and modified == 1):
                 self.privAccess += 1
             else:
                 self.sharedReadWrite += 1
-                
             # Need to invalidate the data for other caches
             # Actual snooping takes place here
             # Either modified or shared in our cache
@@ -402,13 +395,12 @@ class CacheSim:
                 self.statWriteMiss[proc] += 1
             except ValueError:
                 pass
-
             (_, flag) = self.cache[proc][index][our_idx]
             if flag == State.S:
                 for i in range(0, self.numCPU):
                     if i != proc:
-                        try:        
-                            # Found it modified in another's cache, need to 
+                        try:
+                            # Found it modified in another's cache, need to
                             # get him to commit
                             idx = self.cache[i][index].index((tag, State.M))
                             if self.fullVerbose:
@@ -422,20 +414,20 @@ class CacheSim:
                             self.cache[i][index][idx] = (tag, State.I)
                         except ValueError:
                             pass
-                        try:                    
+                        try:
                             # Found it shared in another's cache, invalidate
                             idx = self.cache[i][index].index((tag, State.S))
                             if self.fullVerbose:
                                 print "Snooping: found shared tag in \
-                                        processor's %d cache, invalidating" % i    
+                                        processor's %d cache, invalidating" % i
                             self.invalidations[proc] += 1
                             self.cache[i][index][idx] = (tag, State.I)
                         except ValueError:
-                            pass                                
+                            pass
             # Update processor self.counter
             self.counter[proc] += BUS
             if self.fullVerbose:
-                print "Updating counter - bus transaction"                
+                print "Updating counter - bus transaction"
             # Set our state to modified
             self.cache[proc][index][our_idx] = (tag, State.M)
             if not self.writeBack:
@@ -446,7 +438,7 @@ class CacheSim:
             # Check other caches first
             for i in range(0, self.numCPU):
                 if i != proc:
-                    try:        
+                    try:
                         # Found it modified in another's cache, need to get him
                         # to commit
                         idx = self.cache[i][index].index((tag, State.M))
@@ -460,7 +452,7 @@ class CacheSim:
                         self.cache[i][index][idx] = (tag, State.I)
                     except ValueError:
                         pass
-                    try:                    
+                    try:
                         # Found it shared in another's cache, invalidate
                         idx = self.cache[i][index].index((tag, State.S))
                         if self.fullVerbose:
@@ -470,7 +462,6 @@ class CacheSim:
                         self.cache[i][index][idx] = (tag, State.I)
                     except ValueError:
                         pass
-                
             # Update processor self.counter
             self.counter[proc] += BUS
             if self.fullVerbose:
@@ -483,7 +474,7 @@ class CacheSim:
             self.statWriteMiss[proc] += 1
             self.prefetch(address, proc)
 
-    # Main method. Reads data from the trace file and calls appropriate 
+    # Main method. Reads data from the trace file and calls appropriate
     # handlers. Implements all rudimentary trace file options, as well as full
     # verbose option, which gives even more data than verbose alone.
     def run(self):
@@ -535,45 +526,44 @@ class CacheSim:
                         for i in range(0, len(self.writeBuffer[proc])):
                             (bTag, bIndex) = self.writeBuffer[proc][i]
                             print str(bTag) + "\t" + str(bIndex)
-                            print "\n"                
+                            print "\n"
 
         print 'Finished. Displaying statistics \n'
         for j in range(0, self.numCPU):
             print "Proc %d\n" % j
             if (self.statReadMiss[j] + self.statReadHit[j]) > 0:
-                print 'Load: %f%%' % ((100.0 * self.statReadHit[j] / 
+                print 'Load: %f%%' % ((100.0 * self.statReadHit[j] /
                     (self.statReadMiss[j] + self.statReadHit[j])))
             if (self.statWriteMiss[j] + self.statWriteHit[j]) > 0:
-                print 'Store: %f%%' % ((100.0 * self.statWriteHit[j] / 
+                print 'Store: %f%%' % ((100.0 * self.statWriteHit[j] /
                     (self.statWriteMiss[j] + self.statWriteHit[j])))
             if (self.statReadMiss[j] + self.statReadHit[j]) > 0 or \
                 (self.statWriteMiss[j] + self.statWriteHit[j]) > 0:
-                print 'Hit rate: %f%%' % (100 * (self.statReadHit[j] 
-                    + self.statWriteHit[j])/(1.0 * self.statReadHit[j] 
-                    + self.statWriteHit[j] + self.statReadMiss[j] 
+                print 'Hit rate: %f%%' % (100 * (self.statReadHit[j]
+                    + self.statWriteHit[j])/(1.0 * self.statReadHit[j]
+                    + self.statWriteHit[j] + self.statReadMiss[j]
                     + self.statWriteMiss[j]))
             if (self.statReadMiss[j] + self.statWriteMiss[j]) > 0:
-                print "Percentage of coherence misses: %f%%" % (100 
-                    * self.coherenceMiss[j]/(1.0 * self.statReadMiss[j] 
+                print "Percentage of coherence misses: %f%%" % (100
+                    * self.coherenceMiss[j]/(1.0 * self.statReadMiss[j]
                     + self.statWriteMiss[j]))
             print 'Instruction counter: %d' % self.counter[j]
             print 'RAM accesses: %d' % self.statRAM[j]
             print "Number of invalidations: %d" % self.invalidations[j]
             print '\n'
 
-        acc_sum = 1.0 * (self.privAccess + self.sharedRead 
+        acc_sum = 1.0 * (self.privAccess + self.sharedRead
             + self.sharedReadWrite)
-        print "Private cache-line hits: %f%%" % (self.privAccess / acc_sum 
+        print "Private cache-line hits: %f%%" % (self.privAccess / acc_sum
             * 100)
-        print "Shared read-only cache-line hits: %f%%" % (self.sharedRead 
+        print "Shared read-only cache-line hits: %f%%" % (self.sharedRead
             / acc_sum * 100)
         print "Shared read-write cache-line hits: %f%%" % (self.sharedReadWrite
             / acc_sum * 100)
         num_1proc = 0
         num_2proc = 0
         num_procs = 0
-
-        for i in range(0, num_addr):
+        for i in range(0, NUM_ADDR):
             acc_sum = 0
             for j in range(0, self.numCPU):
                 acc_sum += self.addrAccess[i][j]
@@ -584,12 +574,13 @@ class CacheSim:
             elif acc_sum > 2:
                 num_procs += 1
         acc_sum = 1.0 * (num_1proc + num_2proc + num_procs)
-
         print "1 processor access: %f%%" % (num_1proc / acc_sum * 100)
         print "2 processors access: %f%%" % (num_2proc / acc_sum * 100)
         print ">2 processors access: %f%%" % (num_procs / acc_sum * 100)
 
+        
+# Run the simulation        
 args = "trace2.out"
 print "Opening file " + args
-a = CacheSim(args)
-a.run()
+sim = CacheSim(args)
+sim.run()
