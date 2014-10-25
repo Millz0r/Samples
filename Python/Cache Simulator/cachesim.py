@@ -584,8 +584,14 @@ class CacheSim:
         print ">2 processors access: %f%%" % (num_procs / acc_sum * 100)
 
 
+# Read script arguments
+if len(sys.argv) < 2:
+    # Default for no arguments
+    input_file = "trace2.out"
+else:
+    input_file = sys.argv[1]
+    
 # Run the simulation
-args = "trace2.out"
-print "Opening file " + args
-sim = CacheSim(args)
+print "Opening file " + input_file
+sim = CacheSim(input_file)
 sim.run()
