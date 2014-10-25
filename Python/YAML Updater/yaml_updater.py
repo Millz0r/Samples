@@ -162,7 +162,7 @@ for key in output_config.keys():
                 index = line_buffer.index(line)
                 break
     # Find where the comment ends
-    for i in range(index, 0, -1):
+    for i in range(index, -1, -1):
         if line_buffer[i-1].startswith('#'):
             continue
         else:
@@ -171,10 +171,6 @@ for key in output_config.keys():
     for pos in range(0, len(output)):
         if output[pos].startswith(key):
             break
-    # Remember to add comments from first line too
-    if i == 1 and line_buffer[0].startswith('#'):
-        i = 0
-
     output.insert(pos, '\n' + ''.join(line_buffer[i:index])[:-1])
 
 # Fold the list on newlines and add one at the end
