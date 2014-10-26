@@ -21,7 +21,7 @@ unsigned int div_round_up(unsigned int x, unsigned int y)
 	return ((x + y - 1) / y);
 }
 
-char* getKernelName(const char* path)
+char* get_kernel_name(const char* path)
 {
 	int len = strlen(path);
 	int  num_chars = 0;
@@ -54,10 +54,11 @@ char* getKernelName(const char* path)
 	return out;
 }
 
-void createKernel(mr_env_t* env, const char* path, cl_program* program, cl_kernel* kernel, const char* flags)
+void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kernel* kernel, 
+				   const char* flags)
 {
 	// Build kernel	cl_int error;
-	const char* name = getKernelName(path);
+	const char* name = get_kernel_name(path);
 	size_t src_size = 0;
 	const char *source = oclLoadProgSource(path, &src_size);
 	cl_int error;
@@ -111,7 +112,8 @@ void createKernel(mr_env_t* env, const char* path, cl_program* program, cl_kerne
 	}
 		
 	size_t ret;
-	error = clGetKernelWorkGroupInfo( *kernel, env->device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &ret, NULL);
+	error = clGetKernelWorkGroupInfo(*kernel, env->device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t),
+									 &ret, NULL);
 	CL_ASSERT(error);
 	
 	fprintf (stderr, "Kernel %s specific maximum workgroup size %zu\n", name, ret);
@@ -174,7 +176,6 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 			// default to zeroeth platform if NVIDIA not found
 			if(*clSelectedPlatformID == NULL)
 			{
-				//shrLog(LOGBOTH, 0, "WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
 				*clSelectedPlatformID = clPlatformIDs[0];
 			}
 
