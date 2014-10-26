@@ -80,8 +80,6 @@ void histogram_merger(merger_dat_t* data)
 
 int main(int argc, char *argv[]) 
 {
-    
-    size_t res_len = 0;
     int fd;
     char *fdata;
     struct stat finfo;

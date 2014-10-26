@@ -17,7 +17,6 @@ unsigned int div_round_up(unsigned int x, unsigned int y)
 	// To avoid overflow
 	if (y >= x)
 		return 1;
-		
 	return ((x + y - 1) / y);
 }
 
@@ -36,7 +35,6 @@ char* get_kernel_name(const char* path)
 			break;
 	}
 	end--;
-
 	// and iterate until beginning of string or 
 	for(start = end; start > 0; start--)
 	{
@@ -47,10 +45,8 @@ char* get_kernel_name(const char* path)
 
 	num_chars = end - start + 1;
 	char* out = (char*)malloc(sizeof(char) * (num_chars + 1));
-
 	strncpy(out, &path[start], num_chars);
 	out[num_chars] = '\0';
-
 	return out;
 }
 
@@ -62,9 +58,7 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 	size_t src_size = 0;
 	const char *source = oclLoadProgSource(path, &src_size);
 	cl_int error;
-
 	*program = clCreateProgramWithSource(env->device_context, 1, &source, &src_size, &error);
-
 	if (error) 
 	{
 		fprintf (stderr, "Error creating %s program: %d", name, error);
@@ -110,18 +104,13 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 		//logWriter << build_log << endl;
 		free(build_log);
 	}
-		
 	size_t ret;
 	error = clGetKernelWorkGroupInfo(*kernel, env->device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t),
 									 &ret, NULL);
 	CL_ASSERT(error);
-	
 	fprintf (stderr, "Kernel %s specific maximum workgroup size %zu\n", name, ret);
-	
 	if (ret < env->num_workitems)
 		fprintf (stderr, "Error - too many map workitems\n");
-		
-		
 	if (ret < env->num_reduce_workitems)
 		fprintf (stderr, "Error - too many reduce workitems\n");
 }

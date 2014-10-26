@@ -131,10 +131,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-    int ret;
-
     CHECK_ERROR (fdata == NULL);
-
     CHECK_ERROR (map_reduce_init ());
 
 	size_t res_len;

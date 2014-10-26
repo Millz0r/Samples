@@ -74,7 +74,7 @@ int wc_cmp (const void * a, const void * b)
 	const keyval_t* aa = (const keyval_t*)a;
 	const keyval_t* bb = (const keyval_t*)b;
 	
-	return strcmp(aa->key, bb->key);
+	return strcmp((const char*)aa->key, (const char*)bb->key);
 }
 
 void word_count_splitter (void* input)
@@ -207,10 +207,10 @@ void word_count_merger(merger_dat_t* data)
 	// Now, we can peform an in-place reduction
 	for(size_t i = 0; i < length; i++)
 	{
-		if (strcmp(keyvals[curr_idx].key, keyvals[i].key) != 0)
+		if (strcmp((const char*)keyvals[curr_idx].key, (const char*)keyvals[i].key) != 0)
 		{			
 			// Emit old
-			strcpy(&temp.key, keyvals[curr_idx].key);
+			strcpy((char*)&temp.key, (char*)keyvals[curr_idx].key);
 			temp.value = sum;
 			keyvals[counter] = temp;
 			counter++;
@@ -222,7 +222,7 @@ void word_count_merger(merger_dat_t* data)
 		sum += keyvals[i].value;
 	}
 	// Emit old
-	strcpy(&temp.key, keyvals[curr_idx].key);
+	strcpy((char*)&temp.key, (char*)keyvals[curr_idx].key);
 	temp.value = sum;
 	keyvals[counter] = temp;
 	counter++;
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
     int fd;
     char * fdata;
     struct stat finfo;
-    char * fname, * disp_num_str;
+    char * fname;
 
     struct timeval starttime,endtime;
     struct timeval begin, end;

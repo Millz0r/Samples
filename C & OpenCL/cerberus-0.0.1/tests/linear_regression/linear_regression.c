@@ -91,9 +91,6 @@ int main(int argc, char *argv[]) {
     char * fdata;
     char * fname;
     struct stat finfo;
-    int i;
-	bool create_files = false;
-
     struct timeval starttime,endtime;
     struct timeval begin, end;
 	size_t num_workitems = 0;
@@ -194,7 +191,7 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&endtime,0);
 
-    printf("Linear Regression: Completed %u ms\n",time_diff (&endtime, &starttime));
+    printf("Linear Regression: Completed %ld ms\n",time_diff (&endtime, &starttime));
 
 #ifndef NO_MMAP
     CHECK_ERROR(munmap(fdata, finfo.st_size + 1) < 0);
