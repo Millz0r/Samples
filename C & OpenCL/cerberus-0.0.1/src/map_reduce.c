@@ -22,10 +22,10 @@
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-*(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-*(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */ 
 
@@ -267,15 +267,15 @@ static mr_env_t* env_init(map_reduce_args_t *args)
     /* 3. Initialize data structures. */
     ////////////////////////////////////
 
-    env->input_array =(cl_mem*)malloc(sizeof(cl_mem) * env->num_workgroups);
-    env->map_array =(cl_mem*)malloc(sizeof(cl_mem) * env->num_workgroups);
-    env->map_array_size =(cl_uint*)malloc(sizeof(cl_uint) * env->num_workgroups);
-    env->map_aux_arg =(cl_mem*)malloc(sizeof(cl_mem));
-    env->merged_map_array =(cl_mem*)malloc(sizeof(cl_mem) * env->num_reduce_workgroups);
-    env->reduce_array =(cl_mem*)malloc(sizeof(cl_mem) * env->num_reduce_workgroups);
-    env->reduce_array_size =(cl_uint*)malloc(sizeof(cl_uint) * env->num_reduce_workgroups);
-    env->map_data_size =(cl_uint*)malloc(sizeof(cl_uint) * env->num_workgroups);
-    env->reduce_data_size =(cl_uint*)malloc(sizeof(cl_uint) * env->num_reduce_workgroups);
+    env->input_array = (cl_mem*)malloc(sizeof(cl_mem) * env->num_workgroups);
+    env->map_array = (cl_mem*)malloc(sizeof(cl_mem) * env->num_workgroups);
+    env->map_array_size = (cl_uint*)malloc(sizeof(cl_uint) * env->num_workgroups);
+    env->map_aux_arg = (cl_mem*)malloc(sizeof(cl_mem));
+    env->merged_map_array = (cl_mem*)malloc(sizeof(cl_mem) * env->num_reduce_workgroups);
+    env->reduce_array = (cl_mem*)malloc(sizeof(cl_mem) * env->num_reduce_workgroups);
+    env->reduce_array_size = (cl_uint*)malloc(sizeof(cl_uint) * env->num_reduce_workgroups);
+    env->map_data_size = (cl_uint*)malloc(sizeof(cl_uint) * env->num_workgroups);
+    env->reduce_data_size = (cl_uint*)malloc(sizeof(cl_uint) * env->num_reduce_workgroups);
     if(env->args->splitter == NULL)
         env->args->splitter = default_splitter;
     if(env->args->partition == NULL)
@@ -428,7 +428,7 @@ void map(mr_env_t *env)
         env->input_array[i] = clCreateBuffer(env->device_context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dat_size, inp_ptr, &error);
         CL_ASSERT(error);
-        env->map_data_size[i] =(cl_uint)env->splitter_data[i].length;
+        env->map_data_size[i] = (cl_uint)env->splitter_data[i].length;
     }
     // Create aux buffer
     if(env->args->map_aux_size > 0)
@@ -598,7 +598,7 @@ void map(mr_env_t *env)
  */
 void default_partition(void* input)
 {
-    mr_env_t *env =(mr_env_t*)input;
+    mr_env_t *env = (mr_env_t*)input;
     env->num_reduce_workgroups = env->num_workgroups;
     //cl_int    error;
     for(int i = 0; i < env->num_reduce_workgroups; i++)

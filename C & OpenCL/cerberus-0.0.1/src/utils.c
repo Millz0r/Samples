@@ -15,16 +15,15 @@
 unsigned int div_round_up(unsigned int x, unsigned int y) 
 { 
 	// To avoid overflow
-	if (y >= x)
+	if(y >= x)
 		return 1;
-		
-	return ((x + y - 1) / y);
+	return((x + y - 1) / y);
 }
 
 char* get_kernel_name(const char* path)
 {
 	int len = strlen(path);
-	int  num_chars = 0;
+	int num_chars = 0;
 	int start;
 	int end;
 	// Find the end '.cl' sequence
@@ -36,7 +35,6 @@ char* get_kernel_name(const char* path)
 			break;
 	}
 	end--;
-
 	// and iterate until beginning of string or 
 	for(start = end; start > 0; start--)
 	{
@@ -46,11 +44,9 @@ char* get_kernel_name(const char* path)
 	}
 
 	num_chars = end - start + 1;
-	char* out = (char*)malloc(sizeof(char) * (num_chars + 1));
-
+	char* out = (char*)malloc(sizeof(char) *(num_chars + 1));
 	strncpy(out, &path[start], num_chars);
 	out[num_chars] = '\0';
-
 	return out;
 }
 
@@ -62,20 +58,18 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 	size_t src_size = 0;
 	const char *source = oclLoadProgSource(path, &src_size);
 	cl_int error;
-
 	*program = clCreateProgramWithSource(env->device_context, 1, &source, &src_size, &error);
-
-	if (error) 
+	if(error) 
 	{
-		fprintf (stderr, "Error creating %s program: %d", name, error);
+		fprintf(stderr, "Error creating %s program: %d", name, error);
 		exit(error);
 	}
 
 	// Builds the program
 	error = clBuildProgram(*program, 1, &env->device, flags, NULL, NULL);
-	if (error) 
+	if(error) 
 	{
-		fprintf (stderr, "Error building %s program: %d\n", name, error);
+		fprintf(stderr, "Error building %s program: %d\n", name, error);
 		size_t len;
 		char *buffer;
 		clGetProgramBuildInfo(*program, env->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
@@ -87,13 +81,13 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 
 	// Extracting the kernel
 	*kernel = clCreateKernel(*program, name, &error);
-	if (error) 
+	if(error) 
 	{
-		fprintf (stderr, "Error creating %s kernel: %d", name, error);
+		fprintf(stderr, "Error creating %s kernel: %d", name, error);
 		exit(error);
 	}
 
-	if (env->buildLogging)
+	if(env->buildLogging)
 	{
 		// Store the logs
 		char* build_log;
@@ -101,7 +95,7 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 
 		// First call to know the proper size
 		clGetProgramBuildInfo(*program, env->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-		build_log = malloc(sizeof(char) * (log_size+1));
+		build_log = malloc(sizeof(char) *(log_size+1));
 
 		// Second call to get the log
 		clGetProgramBuildInfo(*program, env->device, CL_PROGRAM_BUILD_LOG, log_size, build_log, NULL);
@@ -110,20 +104,15 @@ void create_kernel(mr_env_t* env, const char* path, cl_program* program, cl_kern
 		//logWriter << build_log << endl;
 		free(build_log);
 	}
-		
 	size_t ret;
 	error = clGetKernelWorkGroupInfo(*kernel, env->device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t),
 									 &ret, NULL);
 	CL_ASSERT(error);
-	
-	fprintf (stderr, "Kernel %s specific maximum workgroup size %zu\n", name, ret);
-	
-	if (ret < env->num_workitems)
-		fprintf (stderr, "Error - too many map workitems\n");
-		
-		
-	if (ret < env->num_reduce_workitems)
-		fprintf (stderr, "Error - too many reduce workitems\n");
+	fprintf(stderr, "Kernel %s specific maximum workgroup size %zu\n", name, ret);
+	if(ret < env->num_workitems)
+		fprintf(stderr, "Error - too many map workitems\n");
+	if(ret < env->num_reduce_workitems)
+		fprintf(stderr, "Error - too many reduce workitems\n");
 }
 
 
@@ -136,8 +125,8 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 	cl_int ciErrNum;
 
 	// Get OpenCL platform count
-	ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
-	if (ciErrNum != CL_SUCCESS)
+	ciErrNum = clGetPlatformIDs(0, NULL, &num_platforms);
+	if(ciErrNum != CL_SUCCESS)
 	{
 		//shrLog(LOGBOTH, 0, " Error %i in clGetPlatformIDs Call !!!\n\n", ciErrNum);
 		return -1000;
@@ -152,17 +141,17 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 		else 
 		{
 			// if there's a platform or more, make space for ID's
-			if ((clPlatformIDs = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id))) == NULL)
+			if((clPlatformIDs = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id))) == NULL)
 			{
 				//shrLog(LOGBOTH, 0, "Failed to allocate memory for cl_platform ID's!\n\n");
 				return -3000;
 			}
 
 			// get platform info for each platform and trap the NVIDIA platform if found
-			ciErrNum = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
+			ciErrNum = clGetPlatformIDs(num_platforms, clPlatformIDs, NULL);
 			for(cl_uint i = 0; i < num_platforms; ++i)
 			{
-				ciErrNum = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
+				ciErrNum = clGetPlatformInfo(clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
 				if(ciErrNum == CL_SUCCESS)
 				{
 					if(strstr(chBuffer, "NVIDIA") != NULL)
@@ -208,14 +197,14 @@ char* oclLoadProgSource(const char* cFilename, size_t* szFinalLength)
 
 	// allocate a buffer for the source code string and read it in
 	char* cSourceString = (char *)malloc(szSourceLength + 1); 
-	if (fread((cSourceString), szSourceLength, 1, pFileStream) != 1)
+	if(fread((cSourceString), szSourceLength, 1, pFileStream) != 1)
 	{
 		fclose(pFileStream);
 		free(cSourceString);
 		return 0;
 	}
 
-	// close the file and return the total length of the combined (preamble + source) string
+	// close the file and return the total length of the combined(preamble + source) string
 	fclose(pFileStream);
 	if(szFinalLength != 0)
 	{
