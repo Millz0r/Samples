@@ -63,10 +63,9 @@ def interactive(key, value, mode):
     # Show context around the offending line first
     if mode == '-':
         print console_text(Colours.BLUE, 'DELETION')
-        show_context(key, mode)
     else:
         print console_text(Colours.BLUE, 'ADDITION')
-        show_context(key, mode)
+    show_context(key, mode)
 
     # Display options
     print '\n\nKeep the line in new file?'
@@ -123,13 +122,16 @@ elif len(sys.argv) == 5:
 # Read the input files
 with open(current_filename, 'r') as current:
     current_config = yaml.safe_load(current)
-with open(current_filename, 'r') as current:
+    # Reset the file for further reading
+    current.seek(0)
     output_config = yaml.safe_load(current)
-with open(current_filename, 'r') as current:
+    # Reset the file for further reading
+    current.seek(0)
     current_file = current.readlines()
 with open(updated_filename, 'r') as updated:
     updated_config = yaml.safe_load(updated)
-with open(updated_filename, 'r') as updated:
+    # Reset the file for further reading
+    updated.seek(0)
     updated_file = updated.readlines()
 
 # Loop through parsed values and see which ones differ
