@@ -3,7 +3,7 @@
 	targeting GPU computing.
 */
 
-/* Copyright (c) 2007-2009, Stanford University
+/* Copyright(c) 2007-2009, Stanford University
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -39,80 +39,59 @@
 
 #define MAX_FILENAME 128
 
-// Data structure for holding splitter data to be fed to map tasks
+/* Data structure for holding splitter data to be fed to map tasks */
 typedef struct
 {
-	void* pointer;
+	void *pointer;
 	size_t length;
 } splitter_array_t;
 
-// Data structure for merger input and output
+/* Data structure for merger input and output */
 typedef struct
 {
-	void* keyvals;
+	void *keyvals;
 	size_t size;
-	void* output;
+	void *output;
 	size_t output_size;
 } merger_dat_t;
-  
-typedef void (*splitter_t)(void *);
-typedef void (*partition_t)(void *);
-typedef void (*merger_t)(merger_dat_t*);
 
+typedef void(*splitter_t)(void *);
+typedef void(*partition_t)(void *);
+typedef void(*merger_t)(merger_dat_t*);
 
 /* The arguments to operate the runtime. */
 typedef struct
 {
-    void * task_data;           /* The data to run MapReduce on.
-                                 * If splitter is NULL, this should be an array. */
+    void  *task_data;           /* The data to run MapReduce on. */
     size_t data_size;            /* Total # of bytes of data */
-
-	// Those arguments must match ones used in kernels
+	/* Those arguments must match ones used in kernels */
 	size_t keyval_size;
-
-	size_t unit_size;		/* Input unit size */
-	size_t num_output_per_map_task; // Number of map outputs per input unit
-	
+	size_t unit_size;
+	size_t num_output_per_map_task; // Number of map outputs per input unit	
 	char map[MAX_FILENAME];				/* Name of the map kernel */
 	char map_count[MAX_FILENAME];				/* Name of the map count kernel */
-	char map_args[256];			/* Additional defines for map kernel */   
-   
-	char  reduce[MAX_FILENAME];            /* Name of the reduce kernel */     
-	char  reduce_count[MAX_FILENAME];     /* Name of the reduce count kernel */     
-	char reduce_args[256]; 	/* Additional defines for reduce kernel */   
-	
-	
-	char  sort[MAX_FILENAME];            /* Name of the sort kernel */  
-
+	char map_args[256];			/* Additional defines for map kernel */
+	char reduce[MAX_FILENAME];            /* Name of the reduce kernel */
+	char reduce_count[MAX_FILENAME];     /* Name of the reduce count kernel */
+	char reduce_args[256]; 	/* Additional defines for reduce kernel */
 	splitter_t splitter;        /* If NULL, the array splitter is used.*/
-
-    partition_t partition;      /* Default partition function is a 
-                                 * hash function */	
-								 
+    partition_t partition;
 	merger_t merger;
-
-	void* map_aux_arg;
+	void *map_aux_arg;
 	size_t map_aux_size;
-	
 	size_t num_workgroups;
 	size_t num_workitems;
 	size_t tasks_per_reduce;
-
-
-    void *result;       /* Pointer to output data. 
-                                 * It is allocated in the merger function*/
+    void *result;       /* Pointer to output data. It is allocated in the merger function */
     size_t *result_len; /* Length of resulting data */
-	
 } map_reduce_args_t;
 
 /* Runtime defined functions. */
 
 /* MapReduce initialization function. Called once per process. */
-int map_reduce_init ();
-
+int map_reduce_init();
 /* MapReduce finalization function. Called once per process. */
-int map_reduce_finalize ();
-
+int map_reduce_finalize();
 /* The main MapReduce engine. This is the function called by the application.
  * It is responsible for creating and scheduling all map and reduce tasks, and
  * also organizes and maintains the data which is passed from application to 
@@ -120,52 +99,37 @@ int map_reduce_finalize ();
  * application. Results are stored in args->result. A return value less than zero
  * represents an error. This function is not thread safe. 
  */   
-int map_reduce (map_reduce_args_t * args);
+int map_reduce(map_reduce_args_t  *args);
 
+/* Default splitter and partitioners */
+void default_splitter(void*);
+void default_partition(void*);
 
 /* Internal map reduce state. */
 typedef struct
 {
     /* Parameters. */
-
 	bool buildLogging;			/* Enables logging of kernel build process */
-
-	/* Callbacks. */
-	// Should be CPU
 	cl_kernel map;                      /* Map function. */
 	cl_kernel map_count;                      /* Map function. */
-	//partition_t partition;          /* Partition function. */     
-	// Sorted data speeds up reduce phase since:
-	// 1) Less local memory is used to track count
-	// 2) Shorter kernels
-	// 3) Easier merge && data locality
 	cl_kernel reduce;                /* Reduce function. */
 	cl_kernel reduce_count;                /* Reduce function. */
-
-	// This must be defined for sort and other stuff
-   // key_cmp_t key_cmp;              /* Key comparator function. */
-
     /* Structures. */
-    map_reduce_args_t * args;       /* Args passed in by the user. */
-
-	cl_mem* input_array; /* Array to send to map task. */
-	cl_mem* map_array; /* Map output */
-
-	cl_uint* map_array_size;
-	cl_uint* reduce_array_size;
-
+    map_reduce_args_t  *args;       /* Args passed in by the user. */
+	cl_mem *input_array; /* Array to send to map task. */
+	cl_mem *map_array; /* Map output */
+	cl_uint *map_array_size;
+	cl_uint *reduce_array_size;
 	/* Array to send to merge task. */
-	cl_mem* reduce_array;
-	cl_mem* merged_map_array;
-
-	// Methods for output write synchronization
-	cl_uint* map_data_size;
-	cl_uint* reduce_data_size;
-	
-	void* map_aux_arg;
+	cl_mem *reduce_array;
+	cl_mem *merged_map_array;
+	/* Methods for output write synchronization */
+	cl_uint *map_data_size;
+	cl_uint *reduce_data_size;
+	void *map_aux_arg;
 	size_t map_aux_size;
-
-	// OpenCL specific
+	splitter_array_t *splitter_data;
+	/* OpenCL specific */
 	cl_context device_context;
 	cl_command_queue device_queue;
 	cl_device_id device;
@@ -173,20 +137,13 @@ typedef struct
 	cl_program map_count_program;
 	cl_program reduce_program;
 	cl_program reduce_count_program;
-
+	/* Workload parameters */
 	size_t num_workitems;
 	size_t num_workgroups;
 	size_t num_reduce_workgroups;
 	size_t num_reduce_workitems;
 	cl_uint	num_compute_units;
 	size_t max_workitems;
-	
-	splitter_array_t *splitter_data;
-
 } mr_env_t;
-
-
-void default_splitter (void*);
-void default_partition (void*);
 
 #endif // MAP_REDUCE_H_

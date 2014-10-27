@@ -82,7 +82,7 @@ int map_reduce(map_reduce_args_t * args)
     fprintf(stderr, "map phase: %ld ms\n", time_diff(&end, &begin));
 #endif
 
-    // See if we have a valid reduce kernel
+    /* See if we have a valid reduce kernel */
     if(env->args->reduce[0] != '\0')
     {
         /* Run reduce tasks and get final values. */
@@ -95,16 +95,16 @@ int map_reduce(map_reduce_args_t * args)
     }
     else
     {
-        // There is no reduce phase, copy the handles
+        /* There is no reduce phase, copy the handles */
         for(int i = 0; i < env->num_reduce_workgroups; i++)
         {
-            // Need to copy the buffer handles
+            /* Need to copy the buffer handles */
             env->reduce_array[i] = env->map_array[i];
             env->reduce_array_size[i] = env->map_array_size[i];
         }
     }
 
-    // Allocate 1D array for all results combined
+    /* Allocate 1D array for all results combined */
     size_t keypair_num = 0;
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
@@ -113,11 +113,10 @@ int map_reduce(map_reduce_args_t * args)
     void *keyval_array = malloc(env->args->keyval_size * keypair_num);
     void *keyval_ptr = keyval_array;
 
-    // Read back
+    /* Read back */
     get_time(&begin);
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
-        // keyval_ptr might need to be reference here
         error = clEnqueueReadBuffer(env->device_queue, env->reduce_array[i], CL_FALSE, 0,
             env->reduce_array_size[i] * env->args->keyval_size, keyval_ptr, 0, NULL, NULL);
         keyval_ptr += env->reduce_array_size[i] * env->args->keyval_size;
@@ -128,14 +127,14 @@ int map_reduce(map_reduce_args_t * args)
     fprintf(stderr, "fetching back from GPU memory: %ld ms\n", time_diff(&end, &begin));
 #endif
 
-    // Merge the data 
+    /* Merge the data  */
     merger_dat_t* merg_dat = malloc(sizeof(merger_dat_t));
     merg_dat->keyvals = keyval_array;
     merg_dat->size = keypair_num;
     get_time(&begin);
     env->args->merger(merg_dat);
     get_time(&end);
-    // Get the length of resulting data
+    /* Get the length of resulting data */
     *env->args->result_len = merg_dat->output_size;
     env->args->result = merg_dat->output;
 #ifdef TIMING
@@ -177,21 +176,21 @@ static mr_env_t* env_init(map_reduce_args_t *args)
     /* 1. Init OpenCL enviroment. */
     ////////////////////////////////
 
-    // Platform
+    /* Platform */
     error = oclGetPlatformID(&platform);
     if(error) 
     {
         printf("Error getting platform id");
         exit(error);
     }
-    // Device
+    /* Device */
     error = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &env->device, NULL);
     if(error) 
     {
         printf("Error getting device ids");
         exit(error);
     }
-    // Number of compute units
+    /* Number of compute units */
     clGetDeviceInfo(env->device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(env->num_compute_units),
         &env->num_compute_units, NULL);
     if(error) 
@@ -200,7 +199,7 @@ static mr_env_t* env_init(map_reduce_args_t *args)
         exit(error);
     }
     fprintf(stderr, "Max compute units: %u\n", env->num_compute_units);
-    // Local memory size
+    /* Local memory size */
     cl_ulong mem_size;
     clGetDeviceInfo(env->device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(mem_size), &mem_size, NULL);
     if(error) 
@@ -209,7 +208,7 @@ static mr_env_t* env_init(map_reduce_args_t *args)
         exit(error);
     }
     fprintf(stderr, "Local mem size: %lu\n", mem_size);
-    // Maximum workgroup size
+    /* Maximum workgroup size */
     clGetDeviceInfo(env->device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(env->max_workitems),
         &env->max_workitems, NULL);
     if(error) 
@@ -218,14 +217,14 @@ static mr_env_t* env_init(map_reduce_args_t *args)
         exit(error);
     }
     fprintf(stderr, "Max workgroup size: %zu\n", env->max_workitems);
-    // Context
+    /* Context */
     env->device_context = clCreateContext(NULL , 1, &env->device, NULL, NULL, &error);
     if(error) 
     {
         printf("Error creating context %d", error);
         exit(error);
     }
-    // Command-queue
+    /* Command-queue */
     env->device_queue = clCreateCommandQueue(env->device_context, env->device, 0, &error);
     if(error) 
     {
@@ -250,7 +249,7 @@ static mr_env_t* env_init(map_reduce_args_t *args)
     env->num_reduce_workgroups = env->num_workgroups;
     env->num_reduce_workitems = env->num_workitems / env->args->tasks_per_reduce;
 
-    // No reduce phase, set single task in reduce phase
+    /* No reduce phase, set single task in reduce phase */
     if(env->args->reduce[0] == '\0')
     {
         env->args->tasks_per_reduce = 1;
@@ -294,7 +293,7 @@ static void env_fini(mr_env_t* env)
 {
     cl_int error;
 
-    // Release kernel and program objects
+    /* Release kernel and program objects */
     error = clReleaseKernel(env->map);
     CL_ASSERT(error);
     error = clReleaseProgram(env->map_program);
@@ -320,19 +319,19 @@ static void env_fini(mr_env_t* env)
             CL_ASSERT(error);
         }
     }
-    // Release memory objects (note map and merged_map arrays are already gone)
+    /* Release memory objects (note map and merged_map arrays are already gone) */
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {    
         error = clReleaseMemObject(env->reduce_array[i]);
         CL_ASSERT(error);
     }
-    // Release command queue and context last
+    /* Release command queue and context last */
     error = clReleaseCommandQueue(env->device_queue);
     CL_ASSERT(error);
     error = clReleaseContext(env->device_context);
     CL_ASSERT(error);
 
-    // Get rid of all dynamic stuff
+    /* Get rid of all dynamic stuff */
     free(env->input_array);
     free(env->map_array);
     free(env->merged_map_array);
@@ -344,14 +343,14 @@ static void env_fini(mr_env_t* env)
     free(env);
 }
 
-// Default splitter. Takes the input data and divides it uniformly based on number of tasks
+/* Default splitter. Takes the input data and divides it uniformly based on number of tasks */
 void default_splitter(void* input)
 {
-    // Partition input into num_workgroups memory buffers
+    /* Partition input into num_workgroups memory buffers */
     mr_env_t *env = (mr_env_t*)input;
     cl_uint num_all_tasks = env->args->data_size / env->args->unit_size;
     fprintf(stderr, "Number of tasks: %u\n", num_all_tasks);
-    // Calculate buffer sizes and initialize dynamic variables
+    /* Calculate buffer sizes and initialize dynamic variables */
     cl_uint tasks_per_map = div_round_up(num_all_tasks, env->num_workgroups * env->num_workitems);
     cl_uint tasks_per_group = tasks_per_map * env->num_workitems;
     cl_uint data_len = tasks_per_group * env->args->unit_size;
@@ -369,7 +368,7 @@ void default_splitter(void* input)
         {
             data_len = tasks_per_group * env->args->unit_size;
         }
-        // Some workgroups might get NULL input
+        /* Some workgroups might get NULL input */
         if(env->args->data_size < 1 || data_len < 1)
         {
             data_len = sizeof(int);
@@ -408,8 +407,8 @@ void map(mr_env_t *env)
 #ifdef VERBOSE
     fprintf(stderr, "init map phase\n");
 #endif
-    // Build the kernel
-    // Check how many pairs splitter produced
+    /* Build the kernel */
+    /* Check how many pairs splitter produced */
     cl_uint num_all_tasks = 0;
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
@@ -419,7 +418,7 @@ void map(mr_env_t *env)
     char args[64];
     sprintf(args, "-D TASKS_PER_MAP=%d %s", tasks_per_map, env->args->map_args);
 
-    // Load splitter data to OpenCL buffers
+    /* Load splitter data to OpenCL buffers */
     get_time(&begin);
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
@@ -430,7 +429,7 @@ void map(mr_env_t *env)
         CL_ASSERT(error);
         env->map_data_size[i] = (cl_uint)env->splitter_data[i].length;
     }
-    // Create aux buffer
+    /* Create aux buffer */
     if(env->args->map_aux_size > 0)
     {
         env->map_aux_arg = clCreateBuffer(env->device_context, 
@@ -446,10 +445,10 @@ void map(mr_env_t *env)
     if(env->args->map_count[0] != '\0')
     {
         create_kernel(env, env->args->map_count, &env->map_count_program, &env->map_count, args);
-        // Calculate number of work-groups
+        /* Calculate number of work-groups */
         cl_mem* output_cnt = malloc(sizeof(cl_mem) * env->num_workgroups);
 
-        // Run map count kernel
+        /* Run map count kernel */
         get_time(&begin);
         for(size_t i = 0; i < env->num_workgroups; i++)
         {
@@ -459,9 +458,7 @@ void map(mr_env_t *env)
         }
         for(size_t i = 0; i < env->num_workgroups; i++)
         {
-            // Set kernel arguments
-            // map input object, intermediate value array(output), map input size
-            // Send in pointer to input data and hope kernel can find its chunk
+            /* Set kernel arguments */
             error = clSetKernelArg(env->map_count, 0, sizeof(env->input_array[i]),
                 (void*)&env->input_array[i]);
             error |= clSetKernelArg(env->map_count, 1, sizeof(output_cnt[i]),(void*)&output_cnt[i]);
@@ -473,7 +470,7 @@ void map(mr_env_t *env)
                     (void*)&env->map_aux_arg);
             }
             CL_ASSERT(error);
-            // Enqueue the kernel on the GPU
+            /* Enqueue the kernel on the GPU */
             error = clEnqueueNDRangeKernel(env->device_queue, env->map_count, 1, NULL,
                 &env->num_workitems, &env->num_workitems, 0, NULL, NULL);
             CL_ASSERT(error);
@@ -485,7 +482,7 @@ void map(mr_env_t *env)
 #endif
 
         /////////////////////////////////////////////////////////////
-        ////         Atomic dynamic memory allocation            ////
+        /*           Atomic dynamic memory allocation              */
         /////////////////////////////////////////////////////////////
         for(size_t i = 0; i < env->num_workgroups; i++)
         {
@@ -496,7 +493,7 @@ void map(mr_env_t *env)
         clFinish(env->device_queue);
         for(size_t i = 0; i < env->num_workgroups; i++)
         {
-            // Get rid of the key number counter
+            /* Get rid of the key number counter */
             clReleaseMemObject(output_cnt[i]);
             CL_ASSERT(error);
         }
@@ -504,9 +501,9 @@ void map(mr_env_t *env)
     else
     {
         /////////////////////////////////////////////////////////////
-        ////         Static pattern memory allocation            ////
+        /*           Static pattern memory allocation              */
         /////////////////////////////////////////////////////////////
-        // Calculate number of key pairs for each workgroup based on input length
+        /* Calculate number of key pairs for each workgroup based on input length */
         for(size_t i = 0; i < env->num_workgroups; i++)
         {
             cl_uint num_tasks = env->splitter_data[i].length / env->args->unit_size;
@@ -523,25 +520,25 @@ void map(mr_env_t *env)
     fprintf(stderr, "num of output map tuples: %u\n", num_all_tuples);
 #endif
 
-    // Init the buffer for read mapper
-    // Intermediate data size depends on amount of key-value pairs returned by all mappers
-    // Make some space for intermediate values on the GPU
-    // Allow mapreduce arguments to determine size of this buffer
+    /* Init the buffer for read mapper 
+       Intermediate data size depends on amount of key-value pairs returned by all mappers
+       Make some space for intermediate values on the GPU
+       Allow mapreduce arguments to determine size of this buffer */
     cl_uint keyval_buffer_size;
     get_time(&begin);
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
         keyval_buffer_size = env->map_array_size[i] * env->args->keyval_size;
-        // If this buffer is empty, at least put a single keyval into it
+        /* If this buffer is empty, at least put a single keyval into it */
         if(keyval_buffer_size == 0)
             keyval_buffer_size = env->args->keyval_size;
 
-        // Create a temp buffer filled with zeroes. Since there is no memset on GPUs and zeroing kernels 
-        // don't work properly with big buffers, read the zeroed buffer from main memory instead.
-        // This might actually not be needed, as all the buffer should be written to by the kernels.
-        //int *temp_buff = malloc(env->map_array_size[i] * env->args->keyval_size);
-        //memset(temp_buff, 0, env->map_array_size[i] * env->args->keyval_size);
-        //free(temp_buff);
+        /* Create a temp buffer filled with zeroes. Since there is no memset on GPUs and zeroing kernels 
+           don't work properly with big buffers, read the zeroed buffer from main memory instead.
+           This might actually not be needed, as all the buffer should be written to by the kernels. */
+        /*int *temp_buff = malloc(env->map_array_size[i] * env->args->keyval_size);
+        memset(temp_buff, 0, env->map_array_size[i] * env->args->keyval_size);
+        free(temp_buff); */
 
         env->map_array[i] = clCreateBuffer(env->device_context, CL_MEM_READ_WRITE,
             keyval_buffer_size, NULL, &error);
@@ -552,7 +549,7 @@ void map(mr_env_t *env)
     fprintf(stderr, "Map output buffers init: %ld ms\n", time_diff(&end, &begin));
 #endif
     
-    // Build the kernel
+    /* Build the kernel */
     create_kernel(env, env->args->map, &env->map_program, &env->map, args);
 
     get_time(&begin);
@@ -565,7 +562,7 @@ void map(mr_env_t *env)
             (void*)&env->map_data_size[i]);
         if(env->args->map_aux_arg != NULL && env->args->map_aux_size > 0)
             error |= clSetKernelArg(env->map, 3, sizeof(env->map_aux_arg),(void*)&env->map_aux_arg);
-        // Launch the Kernel on the GPU
+        /* Launch the Kernel on the GPU */
         error = clEnqueueNDRangeKernel(env->device_queue, env->map, 1, NULL, &env->num_workitems,
             &env->num_workitems, 0, NULL, NULL);
         CL_ASSERT(error);
@@ -579,7 +576,7 @@ void map(mr_env_t *env)
 #ifdef VERBOSE
     fprintf(stderr, "calculated map\n");
 #endif
-    // Release unneeded memory objects
+    /* Release unneeded memory objects */
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
         error = clReleaseMemObject(env->input_array[i]);
@@ -600,15 +597,13 @@ void default_partition(void* input)
 {
     mr_env_t *env = (mr_env_t*)input;
     env->num_reduce_workgroups = env->num_workgroups;
-    //cl_int    error;
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
         env->merged_map_array[i] = env->map_array[i];
         env->reduce_data_size[i] = env->map_data_size[i];
     }
 
-    // Two-workgroup merged partitoner
-    /*// We need to merge proper input for this task
+    /* Two-workgroup merged partitoner. We need to merge proper input for this task */
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
         cl_uint merged_size = 0;
@@ -627,24 +622,23 @@ void default_partition(void* input)
 
             wr_keyvals += env->args->keyval_size * env->map_array_size[i*env->args->tasks_per_reduce + j];
         }
-        // See if this is the last piece and it encounters the last index
-        // To avoid memory corruption
+        /* See if this is the last piece and it encounters the last index to avoid memory corruption */
         merged_size *= env->args->keyval_size;
         env->reduce_data_size[i] = clCreateBuffer(env->device_context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_uint), &merged_size, &error);
         CL_ASSERT(error);
     }
-    // Wait for buffers to be properly copied
+    /* Wait for buffers to be properly copied */
     clFinish(env->device_queue);
 
-    // Get rid of old buffers
+    /* Get rid of old buffers */
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
         clReleaseMemObject(env->map_array[i]);
         CL_ASSERT(error);
     }
-    // Wait for buffers to be properly released
-    clFinish(env->device_queue);*/
+    /* Wait for buffers to be properly released */
+    clFinish(env->device_queue);
 }
 
 void reduce(mr_env_t *env)
@@ -671,9 +665,9 @@ void reduce(mr_env_t *env)
     cl_uint tasks_per_reduce = div_round_up(env->map_array_size[0], env->num_reduce_workitems);
     char args[64];
     sprintf(args, "-D TASKS_PER_REDUCE=%d %s", tasks_per_reduce, env->args->reduce_args);
-    // Calculate number of work-groups
+    /* Calculate number of work-groups */
     cl_mem* output_cnt = malloc(sizeof(cl_mem) * env->num_reduce_workgroups);
-    // Build the reduce count kernel
+    /* Build the reduce count kernel */
     create_kernel(env, env->args->reduce_count, &env->reduce_count_program, &env->reduce_count, args);
 
     get_time(&begin);
@@ -689,7 +683,7 @@ void reduce(mr_env_t *env)
             (void*)&env->reduce_data_size[i]);
         CL_ASSERT(error);
 
-        // Launch the Kernel on the GPU
+        /* Launch the Kernel on the GPU */
         error = clEnqueueNDRangeKernel(env->device_queue, env->reduce_count, 1, NULL,
             &env->num_reduce_workitems, &env->num_reduce_workitems, 0, NULL, NULL);
         CL_ASSERT(error);
@@ -708,7 +702,7 @@ void reduce(mr_env_t *env)
     }
     clFinish(env->device_queue);
 
-    // Get rid of the key number counters
+    /* Get rid of the key number counters */
     for(size_t i = 0; i < env->num_workgroups; i++)
     {
         clReleaseMemObject(output_cnt[i]);
@@ -731,21 +725,21 @@ void reduce(mr_env_t *env)
         if(keyval_buffer_size == 0)
             keyval_buffer_size = env->args->keyval_size;
             
-        // Temp buffer to read zeroed memory onto GPU
-        //int *temp_buff = malloc(env->reduce_array_size[i] * env->args->keyval_size);
-        //memset(temp_buff, 0, env->reduce_array_size[i] * env->args->keyval_size);
-        //free(temp_buff);
+        /* Temp buffer to read zeroed memory onto GPU */
+        /*int *temp_buff = malloc(env->reduce_array_size[i] * env->args->keyval_size);
+        memset(temp_buff, 0, env->reduce_array_size[i] * env->args->keyval_size);
+        free(temp_buff);*/
         
         env->reduce_array[i] = clCreateBuffer(env->device_context, CL_MEM_READ_WRITE, 
             keyval_buffer_size, NULL, &error);
         CL_ASSERT(error);
     }
 
-    // Build the reduce kernel
+    /* Build the reduce kernel */
     create_kernel(env, env->args->reduce, &env->reduce_program, &env->reduce, args);
 
     get_time(&begin);
-    // Set kernel arguments
+    /* Set kernel arguments */
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
         error = clSetKernelArg(env->reduce, 0, sizeof(env->merged_map_array[i]),
@@ -756,7 +750,7 @@ void reduce(mr_env_t *env)
             (void*)&env->reduce_data_size[i]);
         CL_ASSERT(error);
 
-        // Launch the Kernel on the GPU
+        /* Launch the Kernel on the GPU */
         error = clEnqueueNDRangeKernel(env->device_queue, env->reduce, 1, NULL, 
             &env->num_reduce_workitems, &env->num_reduce_workitems, 0, NULL, NULL);
         CL_ASSERT(error);
@@ -770,7 +764,7 @@ void reduce(mr_env_t *env)
     fprintf(stderr, "calculated reduce\n");
 #endif
 
-    // Release memory object
+    /* Release memory object */
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
         clReleaseMemObject(env->merged_map_array[i]);

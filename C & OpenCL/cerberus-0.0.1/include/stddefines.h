@@ -3,7 +3,7 @@
 	targeting GPU computing.
 */
 
-/* Copyright (c) 2007-2009, Stanford University
+/* Copyright(c) 2007-2009, Stanford University
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -22,10 +22,10 @@
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 * DISCLAIMED. IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+*(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */ 
 
@@ -44,37 +44,34 @@
 #define dprintf(...) fprintf(stdout, __VA_ARGS__)
 
 /* Wrapper to CL error check */
-#define CL_ASSERT(a)                                  \
-   if (a != CL_SUCCESS)                                 \
-   {                                                    \
-      fprintf(stderr, "OpenCL fatal error: %d", a);     \
-      exit(0);                                     	\
+#define CL_ASSERT(a)                                 \
+   if(a != CL_SUCCESS)                               \
+   {                                                 \
+      fprintf(stderr, "OpenCL fatal error: %d", a);  \
+      exit(0);                                     	 \
    }
-   
 
 /* Wrapper to check for errors */
-#define CHECK_ERROR(a)                                       \
-   if (a)                                                    \
-   {                                                         \
-      perror("Error at line\n\t" #a "\nSystem Msg");         \
-      assert ((a) == 0);                                     \
+#define CHECK_ERROR(a)                               \
+   if(a)                                             \
+   {                                                 \
+      perror("Error at line\n\t" #a "\nSystem Msg"); \
+      assert((a) == 0);                              \
    }
 
-
-static inline long time_diff (
-    struct timeval *end, struct timeval *begin)
+static inline long time_diff(struct timeval *end, struct timeval *begin)
 {	
     long mtime, seconds, useconds;   
-	
     seconds  = end->tv_sec - begin->tv_sec;
     useconds = end->tv_usec - begin->tv_usec;
     mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;	
-	
+
     return mtime;
 }
 
-static inline void get_time (struct timeval *t)
+static inline void get_time(struct timeval *t)
 {
-    gettimeofday (t, NULL);
+    gettimeofday(t, NULL);
 }
+
 #endif // STDDEFINES_H_
