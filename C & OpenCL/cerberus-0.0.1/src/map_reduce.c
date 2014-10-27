@@ -13,7 +13,7 @@
 *     * Redistributions in binary form must reproduce the above copyright
 *       notice, this list of conditions and the following disclaimer in the
 *       documentation and/or other materials provided with the distribution.
-*     * Neither the name of Stanford University nor the names of its 
+*     * Neither the name of Stanford University nor the names of its  
 *       contributors may be used to endorse or promote products derived from 
 *       this software without specific prior written permission.
 *
@@ -597,6 +597,7 @@ void default_partition(void* input)
 {
     mr_env_t *env = (mr_env_t*)input;
     env->num_reduce_workgroups = env->num_workgroups;
+    cl_int error;
     for(int i = 0; i < env->num_reduce_workgroups; i++)
     {
         env->merged_map_array[i] = env->map_array[i];
@@ -624,8 +625,7 @@ void default_partition(void* input)
         }
         /* See if this is the last piece and it encounters the last index to avoid memory corruption */
         merged_size *= env->args->keyval_size;
-        env->reduce_data_size[i] = clCreateBuffer(env->device_context, 
-            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_uint), &merged_size, &error);
+        env->reduce_data_size[i] = merged_size;
         CL_ASSERT(error);
     }
     /* Wait for buffers to be properly copied */
