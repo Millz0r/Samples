@@ -23,9 +23,8 @@ class State:
 class CacheSim:
     def __init__(self, source):
         """Set up parameters and read the input file"""
-        file = open(source, 'r')
-        self.file_data = file.readlines()
-        file.close()
+        with open(source, 'r') as datafile:
+            self.file_data = datafile.readlines()
         self.num_cpu = 4
         self.cache_size = 128
         self.block_size = 4
